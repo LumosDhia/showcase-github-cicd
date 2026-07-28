@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0}
+  :root{
+    --win:#1c1c1e; --titlebar:#2a2a2c;
+    --ink:#f5f5f7; --muted:#98989d; --faint:#5a5a5e;
+    --border:rgba(255,255,255,0.11); --hair:rgba(255,255,255,0.07); --track:#3a3a3d;
+    --accent:#0a84ff; --on-accent:#ffffff;
+    --ok:#30d158; --err:#ff453a; --warn:#ffd60a;
+    --shadow:0 30px 80px -18px rgba(0,0,0,0.65), 0 4px 14px rgba(0,0,0,0.4);
+    --t-bg:#161719; --t-bar:#252629; --t-fg:#e6e6ea; --t-cmd:#7fb4ff;
+    --t-ok:#5fe08a; --t-err:#ff7b72; --t-warn:#ffcf6b; --t-muted:#7d7f86;
+  }
+  [data-theme="light"]{
+    --win:#ffffff; --titlebar:#f6f6f8;
+    --ink:#1d1d1f; --muted:#6e6e73; --faint:#aeaeb2;
+    --border:rgba(0,0,0,0.10); --hair:rgba(0,0,0,0.06); --track:#e4e4e8;
+    --accent:#0071e3;
+    --ok:#34c759; --err:#ff3b30; --warn:#ff9f0a;
+    --shadow:0 30px 80px -22px rgba(0,0,0,0.4), 0 3px 10px rgba(0,0,0,0.12);
+  }
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  ::selection{background:color-mix(in oklab,var(--accent) 35%, transparent)}
+  @keyframes ringPulse{0%{r:16px;opacity:.55}100%{r:36px;opacity:0}}
+  @keyframes blink{50%{opacity:0}}
+  .tl{width:12px;height:12px;border-radius:50%}
+  textarea::placeholder{color:var(--faint)}
+  textarea:focus{outline:none}
+  input[type=range]{accent-color:var(--accent)}
+</style>
+</helmet>
+<div ref="{{ rootRef }}" data-theme="dark" data-screen-label="Pipeline" style="position:relative;min-height:100vh;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',sans-serif;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased">
+
+  <!-- NATURE WALLPAPER -->
+  <div style="position:fixed;inset:0;z-index:0;overflow:hidden;background:linear-gradient(180deg,#0d1830 0%,#173250 34%,#245160 60%,#3a7175 82%,#5a8f7e 100%)">
+    <div style="position:absolute;top:-8%;right:8%;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(255,214,170,0.55),rgba(255,190,140,0.12) 45%,transparent 70%);filter:blur(4px)"></div>
+    <div style="position:absolute;inset:0;background:radial-gradient(120% 80% at 50% 120%,rgba(0,0,0,0.45),transparent 60%)"></div>
+    <svg viewBox="0 0 1440 500" preserveAspectRatio="none" style="position:absolute;left:0;right:0;bottom:0;width:100%;height:62%">
+      <path d="M0 210 C 280 150 520 195 760 165 C 1010 135 1230 185 1440 150 L1440 500 L0 500 Z" fill="#2c5f66" opacity="0.55"></path>
+      <path d="M0 280 C 260 225 500 268 780 250 C 1060 232 1250 272 1440 255 L1440 500 L0 500 Z" fill="#20494c" opacity="0.8"></path>
+      <path d="M0 360 C 320 315 640 342 940 326 C 1160 315 1320 344 1440 335 L1440 500 L0 500 Z" fill="#132e2c"></path>
+    </svg>
+  </div>
+
+  <!-- macOS MENU BAR -->
+  <header style="position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:20px;height:30px;padding:0 16px;backdrop-filter:saturate(180%) blur(24px);-webkit-backdrop-filter:saturate(180%) blur(24px);background:rgba(20,20,24,0.44);border-bottom:1px solid rgba(255,255,255,0.08);color:#f2f2f5;font-size:13px">
+    <svg viewBox="0 0 814 1000" width="13" height="16" fill="#f2f2f5" style="display:block"><path d="M788 340c-6 4-146 82-146 256 0 201 176 272 181 274-1 4-28 96-92 190-57 82-116 164-207 164s-114-53-219-53c-102 0-139 55-222 55S12 1000 12 800c0-283 218-433 432-433 84 0 155 55 209 55 51 0 130-58 226-58 36 0 166 3 251 124zM573 148c40-48 68-114 68-180 0-9-1-18-2-26-65 3-142 44-188 98-37 42-71 108-71 175 0 10 2 20 2 23 4 1 11 2 17 2 58 0 132-39 174-92z"></path></svg>
+    <span style="font-weight:700;letter-spacing:-0.01em">Delivery Pipeline</span>
+    <sc-for list="{{ menus }}" as="m" hint-placeholder-count="4">
+      <span style="color:rgba(242,242,245,0.82);cursor:default" style-hover="{{ menuHover }}">{{ m }}</span>
+    </sc-for>
+    <div style="flex:1"></div>
+    <span style="display:flex;align-items:center;gap:7px;color:rgba(242,242,245,0.9)">
+      <span class="tl" style="width:7px;height:7px;background:{{ status.dot }};animation:{{ status.anim }}"></span>{{ status.text }}
+    </span>
+    <span style="width:1px;height:15px;background:rgba(255,255,255,0.18)"></span>
+    <span onClick="{{ reset }}" style="cursor:pointer;color:rgba(242,242,245,0.9)" style-hover="{{ menuHover }}">Reset</span>
+    <span onClick="{{ toggleTheme }}" style="cursor:pointer;font-size:14px;line-height:1" style-hover="{{ menuHover }}">{{ themeGlyph }}</span>
+    <span style="font-variant-numeric:tabular-nums;font-weight:500;min-width:96px;text-align:right">{{ clock }}</span>
+  </header>
+
+  <div style="height:2px;position:relative;overflow:hidden;z-index:1">
+    <div ref="{{ progressBarRef }}" style="height:100%;width:0%;background:var(--accent);transition:width .12s linear"></div>
+  </div>
+
+  <main style="position:relative;z-index:1;flex:1;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(370px,0.92fr);gap:20px;padding:22px;align-items:stretch">
+
+    <!-- LEFT COLUMN -->
+    <div style="display:flex;flex-direction:column;gap:20px;min-width:0">
+
+      <!-- WINDOW: loop -->
+      <section style="background:var(--win);border:1px solid var(--border);border-radius:13px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column">
+        <div style="position:relative;display:flex;align-items:center;height:40px;padding:0 14px;background:var(--titlebar);border-bottom:1px solid var(--hair)">
+          <div style="display:flex;gap:8px">
+            <span class="tl" style="background:#ff5f57"></span><span class="tl" style="background:#febc2e"></span><span class="tl" style="background:#28c840"></span>
+          </div>
+          <span style="position:absolute;left:0;right:0;text-align:center;font-size:12.5px;font-weight:500;color:var(--muted);pointer-events:none">pipeline — infinity loop</span>
+        </div>
+        <div style="padding:16px 18px 8px">
+          <div style="display:flex;justify-content:flex-end;gap:14px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;color:var(--muted);margin-bottom:2px">
+            <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:50%;border:2px solid var(--accent)"></span>active</span>
+            <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:50%;border:2px solid var(--ok);background:color-mix(in oklab,var(--ok) 24%,transparent)"></span>passed</span>
+            <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:50%;border:2px solid var(--err);background:color-mix(in oklab,var(--err) 24%,transparent)"></span>failed</span>
+          </div>
+          <svg viewBox="0 0 1000 400" style="width:100%;height:auto;display:block;overflow:visible">
+            <path ref="{{ pathRef }}" d="M500 200 C 430 96 150 96 150 200 C 150 304 430 304 500 200 C 570 96 850 96 850 200 C 850 304 570 304 500 200 Z" fill="none" stroke="var(--track)" stroke-width="8" stroke-linecap="round"></path>
+            <path ref="{{ overlayRef }}" d="M500 200 C 430 96 150 96 150 200 C 150 304 430 304 500 200 C 570 96 850 96 850 200 C 850 304 570 304 500 200 Z" fill="none" stroke="var(--accent)" stroke-width="8" stroke-linecap="round"></path>
+            <g>
+              <sc-for list="{{ nodes }}" as="node" hint-placeholder-count="6">
+                <g>
+                  <sc-if value="{{ node.active }}" hint-placeholder-val="{{ false }}">
+                    <circle cx="{{ node.x }}" cy="{{ node.y }}" r="16" fill="none" stroke="var(--accent)" stroke-width="2" style="animation:ringPulse 1.5s ease-out infinite"></circle>
+                  </sc-if>
+                  <circle cx="{{ node.x }}" cy="{{ node.y }}" r="15" style="{{ node.circleStyle }}"></circle>
+                  <text x="{{ node.x }}" y="{{ node.gy }}" text-anchor="middle" style="{{ node.glyphStyle }}">{{ node.glyph }}</text>
+                  <text x="{{ node.lx }}" y="{{ node.ly }}" text-anchor="middle" style="{{ node.labelStyle }}">{{ node.name }}</text>
+                </g>
+              </sc-for>
+            </g>
+            <sc-if value="{{ hasBreak }}" hint-placeholder-val="{{ false }}">
+              <g>
+                <line x1="{{ breakPoint.ax }}" y1="{{ breakPoint.ay }}" x2="{{ breakPoint.bx }}" y2="{{ breakPoint.by }}" stroke="var(--err)" stroke-width="5" stroke-linecap="round"></line>
+                <line x1="{{ breakPoint.cx }}" y1="{{ breakPoint.cy }}" x2="{{ breakPoint.dx }}" y2="{{ breakPoint.dy }}" stroke="var(--err)" stroke-width="5" stroke-linecap="round"></line>
+              </g>
+            </sc-if>
+            <g ref="{{ pulseRef }}" style="opacity:0">
+              <circle r="15" fill="var(--accent)" opacity="0.16"></circle>
+              <circle r="6" fill="var(--accent)" stroke="var(--win)" stroke-width="2"></circle>
+            </g>
+          </svg>
+          <div style="display:flex;justify-content:center;padding:2px 0 12px">
+            <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:var(--muted)">progress&nbsp;·&nbsp;<span ref="{{ progressPctRef }}" style="color:var(--ink);font-weight:600">0%</span></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- WINDOW: publish / push -->
+      <section style="background:var(--win);border:1px solid var(--border);border-radius:13px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column">
+        <div style="position:relative;display:flex;align-items:center;height:40px;padding:0 14px;background:var(--titlebar);border-bottom:1px solid var(--hair)">
+          <div style="display:flex;gap:8px">
+            <span class="tl" style="background:#ff5f57"></span><span class="tl" style="background:#febc2e"></span><span class="tl" style="background:#28c840"></span>
+          </div>
+          <span style="position:absolute;left:0;right:0;text-align:center;font-size:12.5px;font-weight:500;color:var(--muted);pointer-events:none">publish — site/index.html</span>
+        </div>
+        <div style="padding:16px 18px 18px;display:flex;flex-direction:column;gap:13px">
+
+          <div style="border:1px solid var(--border);border-radius:10px;background:color-mix(in oklab,var(--titlebar) 55%, var(--win));overflow:hidden">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 12px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;color:var(--faint);border-bottom:1px solid var(--hair)">
+              <span>content&nbsp;·&nbsp;what gets pushed to the website</span>
+              <span>{{ contentLines }} lines</span>
+            </div>
+            <textarea value="{{ content }}" onInput="{{ onContent }}" rows="6" spellcheck="false" placeholder="&lt;h1&gt;Hello, world&lt;/h1&gt;" style="width:100%;border:none;resize:vertical;padding:12px;background:transparent;color:var(--ink);font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12.5px;line-height:1.55"></textarea>
+          </div>
+
+          <div style="border:1px solid var(--border);border-radius:10px;background:color-mix(in oklab,var(--titlebar) 55%, var(--win));overflow:hidden">
+            <div style="padding:7px 12px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;color:var(--faint);border-bottom:1px solid var(--hair)">commit message</div>
+            <textarea value="{{ commitMsg }}" onInput="{{ onCommitMsg }}" rows="2" placeholder="Describe your change…" style="width:100%;border:none;resize:none;padding:11px 12px;background:transparent;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;font-size:13.5px;line-height:1.45"></textarea>
+          </div>
+
+          <button onClick="{{ run }}" disabled="{{ pushDisabled }}" style="{{ pushBtnStyle }}">
+            <span style="font-size:14px;line-height:1">&#8593;</span>{{ pushLabel }}
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <!-- WINDOW: terminal -->
+    <section style="background:var(--t-bg);border:1px solid var(--border);border-radius:13px;box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden;min-height:600px">
+      <div style="position:relative;display:flex;align-items:center;height:40px;padding:0 14px;background:var(--t-bar);border-bottom:1px solid rgba(255,255,255,0.06)">
+        <div style="display:flex;gap:8px">
+          <span class="tl" style="background:#ff5f57"></span><span class="tl" style="background:#febc2e"></span><span class="tl" style="background:#28c840"></span>
+        </div>
+        <span style="position:absolute;left:0;right:0;text-align:center;font-size:12.5px;font-weight:500;color:var(--t-muted);pointer-events:none">bash — ci-runner</span>
+        <div style="margin-left:auto;display:flex;gap:6px;z-index:1;background:var(--t-bar);padding-left:10px">
+          <button onClick="{{ tabOutput }}" style="{{ tabOutStyle }}">output</button>
+          <button onClick="{{ tabSummary }}" style="{{ tabSumStyle }}">summary</button>
+        </div>
+      </div>
+
+      <sc-if value="{{ showOutput }}" hint-placeholder-val="{{ true }}">
+        <div ref="{{ termRef }}" style="flex:1;overflow:auto;padding:14px 16px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12.5px;line-height:1.7">
+          <sc-for list="{{ logs }}" as="line" hint-placeholder-count="3">
+            <div style="{{ line.style }}">{{ line.text }}</div>
+          </sc-for>
+          <sc-if value="{{ running }}" hint-placeholder-val="{{ false }}">
+            <div><span style="display:inline-block;width:8px;height:15px;background:var(--t-cmd);vertical-align:-2px;animation:blink 1s steps(1) infinite"></span></div>
+          </sc-if>
+          <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="color:var(--t-muted)">$ idle — edit the content, then press Commit &amp; Push.</div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ showSummary }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;overflow:auto;padding:16px;font-family:ui-monospace,'SF Mono',Menlo,monospace">
+          <div style="display:flex;justify-content:space-between;font-size:10.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--t-muted);padding-bottom:9px;border-bottom:1px solid rgba(255,255,255,0.08)">
+            <span>stage</span><span>status · time</span>
+          </div>
+          <sc-for list="{{ summary }}" as="row" hint-placeholder-count="6">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+              <span style="display:flex;align-items:center;gap:9px;color:var(--t-fg);font-size:13px">
+                <span style="{{ row.dotStyle }}">{{ row.glyph }}</span>{{ row.name }}
+              </span>
+              <span style="font-size:12px;color:{{ row.color }}">{{ row.right }}</span>
+            </div>
+          </sc-for>
+          <div style="display:flex;justify-content:space-between;padding-top:12px;color:var(--t-fg);font-size:13px;font-weight:600">
+            <span>{{ summaryVerdict }}</span><span>{{ totalLabel }}</span>
+          </div>
+        </div>
+      </sc-if>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;$preview&quot;: { &quot;width&quot;: &quot;100%&quot;, &quot;height&quot;: 860 },
+  &quot;theme&quot;: { &quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;dark&quot;, &quot;light&quot;], &quot;default&quot;: &quot;dark&quot;, &quot;tsType&quot;: &quot;'light'|'dark'&quot; },
+  &quot;accent&quot;: { &quot;editor&quot;: &quot;color&quot;, &quot;default&quot;: &quot;#0a84ff&quot;, &quot;options&quot;: [&quot;#0a84ff&quot;, &quot;#5e5ce6&quot;, &quot;#30d158&quot;, &quot;#ff375f&quot;], &quot;tsType&quot;: &quot;string&quot; },
+  &quot;speed&quot;: { &quot;editor&quot;: &quot;range&quot;, &quot;default&quot;: 1, &quot;min&quot;: 0.5, &quot;max&quot;: 3, &quot;step&quot;: 0.1, &quot;unit&quot;: &quot;x&quot;, &quot;tsType&quot;: &quot;number&quot; }
+}">
+class Component extends DCLogic {
+  stages = [
+    { id: 'plan', name: 'Plan' }, { id: 'code', name: 'Code' }, { id: 'build', name: 'Build' },
+    { id: 'test', name: 'Test' }, { id: 'release', name: 'Release' }, { id: 'deploy', name: 'Deploy' },
+  ];
+  BASE = [1300, 1400, 2600, 2400, 1600, 2600];
+  menus = ['File', 'Edit', 'View', 'Pipeline', 'Window'];
+
+  state = {
+    running: false, done: false, status: 'idle', tab: 'output',
+    speed: 1, failStage: 'none', commitMsg: 'Publish new landing copy',
+    content: '<h1>Ship it.</h1>\n<p>Every push flows the loop.</p>\n<a href="/docs">Read the docs →</a>',
+    enabled: [true, true, true, true, true, true],
+    tests: { unit: true, integration: true, e2e: true, lint: true },
+    stageStatus: ['idle', 'idle', 'idle', 'idle', 'idle', 'idle'],
+    logs: [], summary: [], nodes: [], breakPoint: null,
+    theme: 'dark', accent: '#0a84ff', pushCount: 0, clock: '',
+  };
+
+  pathRef = (el) => { if (el) this.pathEl = el; };
+  overlayRef = (el) => { if (el) this.overlayEl = el; };
+  pulseRef = (el) => { if (el) this.pulseEl = el; };
+  progressBarRef = (el) => { if (el) this.progressBarEl = el; };
+  progressPctRef = (el) => { if (el) this.progressPctEl = el; };
+  termRef = (el) => { if (el) this.termEl = el; };
+  rootRef = (el) => { if (el) { this.rootEl = el; this.applyTheme(); } };
+
+  tick() {
+    const d = new Date();
+    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    let h = d.getHours(); const m = String(d.getMinutes()).padStart(2, '0');
+    const ap = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12;
+    this.setState({ clock: days[d.getDay()] + ' ' + h + ':' + m + ' ' + ap });
+  }
+
+  componentDidMount() {
+    this.runToken = 0;
+    this.tick();
+    this.clockTimer = setInterval(() => this.tick(), 10000);
+    const p = this.props || {};
+    const patch = {};
+    if (p.theme) patch.theme = p.theme;
+    if (p.accent) patch.accent = p.accent;
+    if (typeof p.speed === 'number') patch.speed = p.speed;
+    if (this.pathEl) {
+      const L = this.pathEl.getTotalLength();
+      this.L = L;
+      const nodePos = [], nodes = [], segStart = [], segEnd = [];
+      for (let k = 0; k < 6; k++) nodePos[k] = ((k + 0.5) / 6) * L;
+      for (let k = 0; k < 6; k++) segEnd[k] = k < 5 ? nodePos[k] : L;
+      segStart[0] = 0;
+      for (let k = 1; k < 6; k++) segStart[k] = segEnd[k - 1];
+      this.segStart = segStart; this.segEnd = segEnd; this.nodePos = nodePos;
+      for (let k = 0; k < 6; k++) {
+        const pt = this.pathEl.getPointAtLength(nodePos[k]);
+        const above = pt.y < 200;
+        nodes.push({ x: pt.x, y: pt.y, lx: pt.x, ly: above ? pt.y - 28 : pt.y + 36 });
+      }
+      patch.nodes = nodes;
+      if (this.overlayEl) { this.overlayEl.style.strokeDasharray = L; this.overlayEl.style.strokeDashoffset = L; }
+    }
+    this.setState(patch, () => this.applyTheme());
+  }
+
+  componentWillUnmount() { if (this.clockTimer) clearInterval(this.clockTimer); }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (this.termEl && this.state.tab === 'output') this.termEl.scrollTop = this.termEl.scrollHeight;
+    if (prevState.theme !== this.state.theme || prevState.accent !== this.state.accent) this.applyTheme();
+  }
+
+  applyTheme() {
+    if (!this.rootEl) return;
+    this.rootEl.dataset.theme = this.state.theme;
+    this.rootEl.style.setProperty('--accent', this.state.accent);
+  }
+
+  toggleTheme = () => this.setState(s => ({ theme: s.theme === 'dark' ? 'light' : 'dark' }));
+
+  updatePulse(len) {
+    if (!this.pathEl) return;
+    const L = this.L || this.pathEl.getTotalLength();
+    const cl = Math.max(0, Math.min(L, len));
+    const pt = this.pathEl.getPointAtLength(cl);
+    if (this.pulseEl) { this.pulseEl.setAttribute('transform', `translate(${pt.x} ${pt.y})`); this.pulseEl.style.opacity = 1; }
+    if (this.overlayEl) this.overlayEl.style.strokeDashoffset = (L - cl);
+    const pct = Math.round(cl / L * 100);
+    if (this.progressBarEl) this.progressBarEl.style.width = pct + '%';
+    if (this.progressPctEl) this.progressPctEl.textContent = pct + '%';
+  }
+
+  animate(a, b, dur, onFrame) {
+    return new Promise(res => {
+      const token = this.runToken, t0 = performance.now();
+      const ease = t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      const tick = now => {
+        if (token !== this.runToken) { res('cancel'); return; }
+        const p = Math.min(1, (now - t0) / dur);
+        onFrame(p, a + (b - a) * ease(p));
+        if (p < 1) this.raf = requestAnimationFrame(tick); else res('done');
+      };
+      this.raf = requestAnimationFrame(tick);
+    });
+  }
+
+  delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  setStatus(k, v) { this.setState(s => { const ss = s.stageStatus.slice(); ss[k] = v; return { stageStatus: ss }; }); }
+  pushLog(l) { this.setState(s => ({ logs: s.logs.concat(l).slice(-500) })); }
+  addSummary(name, status, ms) { this.setState(s => ({ summary: s.summary.concat({ name, status, ms }) })); }
+
+  setBreak(len) {
+    const pt = this.pathEl.getPointAtLength(len);
+    this.setState({ breakPoint: {
+      ax: pt.x - 9, ay: pt.y - 9, bx: pt.x + 9, by: pt.y + 9,
+      cx: pt.x + 9, cy: pt.y - 9, dx: pt.x - 9, dy: pt.y + 9,
+    }});
+  }
+
+  buildLines(st, willFail) {
+    const t = this.state.tests;
+    const lines = (this.state.content || '').split('\n').length;
+    let L = [];
+    if (st.id === 'plan') L = [
+      { k: 'cmd', t: '$ ci plan --pipeline .ci/pipeline.yml' },
+      { k: 'info', t: 'Resolving pipeline graph … 6 stages' },
+      { k: 'info', t: 'Loading cache manifest (sha256:3f9a…c1)' },
+      { k: 'ok', t: '✓ plan ready' },
+    ];
+    else if (st.id === 'code') L = [
+      { k: 'cmd', t: '$ eslint . && tsc --noEmit' },
+      { k: 'info', t: 'Checked 128 files · prettier OK' },
+      { k: 'info', t: 'tsc … 0 type errors' },
+      { k: 'ok', t: '✓ static analysis passed' },
+    ];
+    else if (st.id === 'build') L = [
+      { k: 'cmd', t: '$ docker build -t app:8f2c1a .' },
+      { k: 'info', t: '[1/5] FROM node:20-alpine' },
+      { k: 'info', t: '[3/5] RUN npm ci … 214 pkgs in 18s' },
+      { k: 'info', t: '[4/5] RUN npm run build … bundle 1.8mb' },
+      { k: 'info', t: '[5/5] exporting layers' },
+      { k: 'ok', t: '✓ image built · app:8f2c1a' },
+    ];
+    else if (st.id === 'test') {
+      L = [{ k: 'cmd', t: '$ jest --ci --coverage' }];
+      if (t.unit) L.push({ k: 'info', t: 'unit …………… 142 passed' });
+      if (t.integration) L.push({ k: 'info', t: 'integration … 38 passed' });
+      if (t.e2e) L.push({ k: 'info', t: 'e2e (playwright) 12 passed' });
+      L.push({ k: 'info', t: 'coverage 91.4% lines' });
+      L.push({ k: 'ok', t: '✓ all suites green' });
+    }
+    else if (st.id === 'release') L = [
+      { k: 'cmd', t: '$ semantic-release' },
+      { k: 'info', t: 'Analyzing 23 commits → v2.4.0' },
+      { k: 'info', t: 'git tag v2.4.0 · pushed' },
+      { k: 'ok', t: '✓ release v2.4.0 published' },
+    ];
+    else L = [
+      { k: 'cmd', t: '$ rsync -az site/ prod:/var/www/app' },
+      { k: 'info', t: 'publishing site/index.html … ' + lines + ' lines' },
+      { k: 'info', t: 'kubectl rollout status … 3/3 replicas' },
+      { k: 'info', t: 'traffic shifted 100% → v2.4.0' },
+      { k: 'ok', t: '✓ live · https://app.example.com' },
+    ];
+    if (willFail) {
+      while (L.length && L[L.length - 1].k === 'ok') L.pop();
+      const fails = {
+        plan: 'pipeline.yml: unknown stage reference',
+        code: 'tsc … 3 type errors in src/api.ts',
+        build: 'RUN npm run build exited 1 — module not found',
+        test: 'integration/api.spec.ts — 2 failing',
+        release: 'npm publish … 403 forbidden (auth)',
+        deploy: 'rollout … 1/3 replicas · CrashLoopBackOff',
+      };
+      L.push({ k: 'err', t: '✕ ' + fails[st.id] });
+      L.push({ k: 'err', t: 'stage failed · halting pipeline' });
+    }
+    return L;
+  }
+
+  async runStage(k) {
+    const st = this.stages[k];
+    const willFail = this.state.failStage === st.id;
+    const lines = this.buildLines(st, willFail);
+    const dur = this.BASE[k] / this.state.speed;
+    this.setStatus(k, 'active');
+    const a = this.segStart[k], b = this.segEnd[k];
+    const t0 = Date.now();
+    let emitted = 0;
+    await this.animate(a, b, dur, (p) => {
+      this.updatePulse(a + (b - a) * p);
+      const tgt = Math.min(lines.length, Math.floor(p * (lines.length + 0.5)));
+      while (emitted < tgt) { this.pushLog(lines[emitted]); emitted++; }
+    });
+    while (emitted < lines.length) { this.pushLog(lines[emitted]); emitted++; }
+    const ms = Date.now() - t0;
+    if (willFail) { this.setStatus(k, 'failed'); this.setBreak(b); this.addSummary(st.name, 'failed', ms); throw { halt: true }; }
+    this.setStatus(k, 'success'); this.addSummary(st.name, 'passed', ms);
+  }
+
+  async skipStage(k) {
+    const dur = 340 / this.state.speed;
+    const a = this.segStart[k], b = this.segEnd[k];
+    this.pushLog({ k: 'muted', t: '· ' + this.stages[k].name.toLowerCase() + ' skipped' });
+    this.setStatus(k, 'skipped');
+    await this.animate(a, b, dur, (p) => this.updatePulse(a + (b - a) * p));
+    this.addSummary(this.stages[k].name, 'skipped', 0);
+  }
+
+  hardReset() {
+    if (this.raf) cancelAnimationFrame(this.raf);
+    this.runToken = (this.runToken || 0) + 1;
+    if (this.overlayEl && this.L) this.overlayEl.style.strokeDashoffset = this.L;
+    if (this.pulseEl) this.pulseEl.style.opacity = 0;
+    if (this.progressBarEl) this.progressBarEl.style.width = '0%';
+    if (this.progressPctEl) this.progressPctEl.textContent = '0%';
+    this.setState({ logs: [], summary: [], breakPoint: null, stageStatus: ['idle','idle','idle','idle','idle','idle'], status: 'idle', done: false });
+  }
+
+  run = async () => {
+    if (this.state.running) return;
+    const msg = (this.state.commitMsg || '').trim();
+    if (!msg) return;
+    this.hardReset();
+    this.runToken = (this.runToken || 0) + 1;
+    const token = this.runToken;
+    const pushNo = this.state.pushCount + 1;
+    this.setState({ running: true, status: 'running', done: false, tab: 'output', pushCount: pushNo });
+
+    const sha = Math.random().toString(16).slice(2, 9);
+    const lines = (this.state.content || '').split('\n').length;
+    const pre = [
+      { k: 'cmd', t: '$ git add site/index.html' },
+      { k: 'cmd', t: '$ git commit -m "' + msg + '"' },
+      { k: 'info', t: '[main ' + sha + '] ' + msg },
+      { k: 'muted', t: ' 1 file changed, ' + lines + ' insertions(+)' },
+      { k: 'cmd', t: '$ git push origin main' },
+      { k: 'info', t: 'Enumerating objects: 9, done.' },
+      { k: 'ok', t: 'remote: GitLab: Pipeline #' + (1000 + pushNo) + ' created for ' + sha },
+      { k: 'muted', t: '   → gitlab.com/app/-/pipelines/' + (1000 + pushNo) },
+    ];
+    for (const l of pre) { if (token !== this.runToken) return; this.pushLog(l); await this.delay(150 / this.state.speed); }
+    if (token !== this.runToken) return;
+    requestAnimationFrame(() => this.updatePulse(0.5));
+    try {
+      for (let k = 0; k < 6; k++) {
+        if (this.state.enabled[k]) await this.runStage(k);
+        else await this.skipStage(k);
+      }
+      this.setState({ status: 'passed' });
+    } catch (e) {
+      this.setState({ status: 'failed' });
+    } finally {
+      this.setState({ running: false, done: true, tab: 'summary' });
+    }
+  };
+
+  reset = () => { if (!this.state.running) this.hardReset(); };
+
+  onContent = (e) => { const v = e.target.value; this.setState({ content: v }); };
+  onCommitMsg = (e) => { const v = e.target.value; this.setState({ commitMsg: v }); };
+  onSpeed = (e) => { const v = parseFloat(e.target.value); this.setState({ speed: v }); };
+  onFail = (e) => this.setState({ failStage: e.target.value });
+  tabOutput = () => this.setState({ tab: 'output' });
+  tabSummary = () => this.setState({ tab: 'summary' });
+
+  logColor(k) {
+    return { cmd: 'var(--t-cmd)', info: 'var(--t-fg)', ok: 'var(--t-ok)', err: 'var(--t-err)', warn: 'var(--t-warn)', muted: 'var(--t-muted)' }[k] || 'var(--t-fg)';
+  }
+
+  renderVals() {
+    const s = this.state;
+    const statusMap = {
+      idle: { text: 'Idle', color: 'var(--muted)', dot: 'var(--faint)', anim: 'none' },
+      running: { text: 'Running', color: 'var(--accent)', dot: 'var(--accent)', anim: 'blink 1s steps(1) infinite' },
+      passed: { text: 'Passed', color: 'var(--ok)', dot: 'var(--ok)', anim: 'none' },
+      failed: { text: 'Failed', color: 'var(--err)', dot: 'var(--err)', anim: 'none' },
+    };
+    const status = statusMap[s.status] || statusMap.idle;
+
+    const glyphMap = { idle: '', active: '', success: '✓', failed: '✕', skipped: '–' };
+    const circleFor = (st) => {
+      if (st === 'active') return { stroke: 'var(--accent)', fill: 'color-mix(in oklab,var(--accent) 16%, var(--win))', strokeWidth: 3 };
+      if (st === 'success') return { stroke: 'var(--ok)', fill: 'color-mix(in oklab,var(--ok) 18%, var(--win))', strokeWidth: 3 };
+      if (st === 'failed') return { stroke: 'var(--err)', fill: 'color-mix(in oklab,var(--err) 20%, var(--win))', strokeWidth: 3 };
+      if (st === 'skipped') return { stroke: 'var(--faint)', fill: 'var(--win)', strokeWidth: 2, strokeDasharray: '3 4' };
+      return { stroke: 'var(--faint)', fill: 'var(--win)', strokeWidth: 2.5 };
+    };
+    const glyphColor = { active: 'var(--accent)', success: 'var(--ok)', failed: 'var(--err)', skipped: 'var(--muted)', idle: 'var(--muted)' };
+    const nodes = (s.nodes || []).map((n, i) => {
+      const st = s.stageStatus[i] || 'idle';
+      const strong = st === 'active' || st === 'success' || st === 'failed';
+      return {
+        x: n.x, y: n.y, lx: n.lx, ly: n.ly, gy: n.y + 4,
+        name: this.stages[i].name, glyph: glyphMap[st], active: st === 'active',
+        circleStyle: circleFor(st),
+        glyphStyle: { fill: glyphColor[st], fontFamily: "ui-monospace,'SF Mono',Menlo,monospace", fontSize: '13px', fontWeight: 700 },
+        labelStyle: { fill: strong ? 'var(--ink)' : 'var(--muted)', fontFamily: "-apple-system,'SF Pro Text',sans-serif", fontSize: '12.5px', fontWeight: strong ? 600 : 500, letterSpacing: '0.01em' },
+      };
+    });
+
+    const logs = s.logs.map(l => ({ text: l.t, style: { color: this.logColor(l.k), whiteSpace: 'pre-wrap' } }));
+
+    const tabBase = { fontSize: '11.5px', padding: '4px 10px', borderRadius: '7px', cursor: 'pointer', border: '1px solid transparent', fontFamily: "-apple-system,sans-serif" };
+    const tabOn = { ...tabBase, background: 'rgba(255,255,255,0.13)', color: 'var(--t-fg)' };
+    const tabOff = { ...tabBase, background: 'transparent', color: 'var(--t-muted)' };
+
+    const sumColor = { passed: 'var(--t-ok)', failed: 'var(--t-err)', skipped: 'var(--t-muted)' };
+    const sumGlyph = { passed: '✓', failed: '✕', skipped: '–' };
+    const summary = s.summary.map(r => ({
+      name: r.name, glyph: sumGlyph[r.status], color: sumColor[r.status],
+      right: r.status === 'skipped' ? 'skipped' : r.status + ' · ' + (r.ms / 1000).toFixed(1) + 's',
+      dotStyle: { color: sumColor[r.status], width: '14px', display: 'inline-block', fontWeight: 700 },
+    }));
+    const totalMs = s.summary.reduce((a, r) => a + r.ms, 0);
+    const failed = s.summary.some(r => r.status === 'failed');
+    const summaryVerdict = s.summary.length ? (failed ? 'Pipeline halted' : 'Published live') : '';
+
+    const emptyMsg = !(s.commitMsg || '').trim();
+    const pushDisabled = s.running || emptyMsg;
+    const pushBtnStyle = {
+      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+      fontSize: '14px', fontWeight: 590, padding: '11px 18px', borderRadius: '10px', border: 'none',
+      cursor: pushDisabled ? 'default' : 'pointer',
+      background: pushDisabled ? 'color-mix(in oklab,var(--accent) 45%, var(--titlebar))' : 'var(--accent)',
+      color: 'var(--on-accent)', opacity: pushDisabled ? 0.6 : 1, transition: 'opacity .15s,background .15s',
+    };
+
+    return {
+      status, menus: this.menus, clock: s.clock,
+      themeGlyph: s.theme === 'dark' ? '☀︎' : '☾', toggleTheme: this.toggleTheme,
+      menuHover: { color: '#ffffff' },
+      run: this.run, reset: this.reset, running: s.running,
+      content: s.content, onContent: this.onContent, contentLines: (s.content || '').split('\n').length,
+      commitMsg: s.commitMsg, onCommitMsg: this.onCommitMsg,
+      pushDisabled, pushBtnStyle, pushLabel: s.running ? 'Pushing…' : (s.done ? 'Commit & Push again' : 'Commit & Push'),
+      nodes, logs, hasBreak: !!s.breakPoint, breakPoint: s.breakPoint || {},
+      isEmpty: s.logs.length === 0,
+      tab: s.tab, showOutput: s.tab === 'output', showSummary: s.tab === 'summary',
+      tabOutput: this.tabOutput, tabSummary: this.tabSummary,
+      tabOutStyle: s.tab === 'output' ? tabOn : tabOff, tabSumStyle: s.tab === 'summary' ? tabOn : tabOff,
+      summary, summaryVerdict, totalLabel: totalMs ? 'total ' + (totalMs / 1000).toFixed(1) + 's' : '',
+      pathRef: this.pathRef, overlayRef: this.overlayRef, pulseRef: this.pulseRef,
+      progressBarRef: this.progressBarRef, progressPctRef: this.progressPctRef, termRef: this.termRef, rootRef: this.rootRef,
+    };
+  }
+}
+</script>
+</body>
+</html>
