@@ -121,6 +121,12 @@ export default function App() {
     }
   }, [showNotification]);
 
+  useEffect(() => {
+    github.getFileContent(FILE_PATH, BRANCH).then((liveContent) => {
+      if (liveContent) setContent(liveContent);
+    }).catch(() => {});
+  }, []);
+
   const [isEditorFocused, setIsEditorFocused] = useState(false);
 
   useEffect(() => {
@@ -341,6 +347,7 @@ export default function App() {
           appendLog(isPassed ? 'ok' : 'err', `✓ workflow run ${run.conclusion || 'completed'}`);
           if (isPassed) {
             setShowNotification(true);
+            setIframeKey((k) => k + 1);
           }
           return;
         }

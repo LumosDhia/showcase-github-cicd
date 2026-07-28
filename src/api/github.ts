@@ -71,6 +71,24 @@ export function utf8ToBase64(str: string): string {
   return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) => String.fromCharCode(parseInt(p1, 16))));
 }
 
+export async function getFileContent(filePath: string, branch = 'main'): Promise<string | null> {
+  try {
+    const fileInfo = await request<{ content: string; encoding: string }>(`/contents/${filePath}?ref=${branch}`);
+    if (fileInfo.content && fileInfo.encoding === 'base64') {
+      const cleanBase64 = fileInfo.content.replace(/\n/g, '');
+      const binary = atob(cleanBase64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return new TextDecoder('utf-8').decode(bytes);
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export async function getFileSha(filePath: string, branch = 'main'): Promise<string | null> {
   try {
     const fileInfo = await request<{ sha: string }>(`/contents/${filePath}?ref=${branch}`);
