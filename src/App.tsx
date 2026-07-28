@@ -10,7 +10,8 @@ const STAGES: StageDef[] = [
   { id: 'sca', name: 'SCA Audit' },
   { id: 'sast-codeql', name: 'CodeQL SAST' },
   { id: 'lint-and-test', name: 'Quality Gate' },
-  { id: 'build', name: 'Build & Deploy' },
+  { id: 'build', name: 'Build' },
+  { id: 'deploy', name: 'Deploy' },
 ];
 
 const FILE_PATH = 'public/index.html';
@@ -59,7 +60,8 @@ function buildStageStatuses(jobs: GitHubJob[]): Record<string, StageStatus> {
 
     const stageJobs = jobs.filter((j) => {
       const name = j.name.toLowerCase();
-      if (stage.id === 'build') return name.includes('build') || name.includes('deploy');
+      if (stage.id === 'build') return name === 'build' || (name.includes('build') && !name.includes('deploy'));
+      if (stage.id === 'deploy') return name.includes('deploy') || name.includes('pages');
       if (stage.id === 'secret-scan') return name.includes('secret') || name.includes('gitleaks');
       if (stage.id === 'sca') return name.includes('sca') || name.includes('audit');
       if (stage.id === 'sast-codeql') return name.includes('sast') || name.includes('codeql');
@@ -290,7 +292,8 @@ export default function App() {
       jobs
         .filter((j) => {
           const name = j.name.toLowerCase();
-          if (stage.id === 'build') return name.includes('build') || name.includes('deploy');
+          if (stage.id === 'build') return name === 'build' || (name.includes('build') && !name.includes('deploy'));
+          if (stage.id === 'deploy') return name.includes('deploy') || name.includes('pages');
           if (stage.id === 'secret-scan') return name.includes('secret') || name.includes('gitleaks');
           if (stage.id === 'sca') return name.includes('sca') || name.includes('audit');
           if (stage.id === 'sast-codeql') return name.includes('sast') || name.includes('codeql');
