@@ -96,7 +96,11 @@ export default function App() {
   const [clock, setClock] = useState('');
 
   const [content, setContent] = useState('<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n  <title>Simple Node Website</title>\n</head>\n<body>\n  <h1>Hello World</h1>\n  <p>Security & Delivery GitHub Actions Pipeline Active.</p>\n</body>\n</html>\n');
-  const [commitMsg, setCommitMsg] = useState('Update index.html copy');
+  const [commitCount, setCommitCount] = useState(() => {
+    const saved = localStorage.getItem('commit_count');
+    return saved ? parseInt(saved, 10) : 1;
+  });
+  const commitMsg = `Update index.html ${commitCount}`;
 
   const [running, setRunning] = useState(false);
   const [done, setDone] = useState(false);
@@ -382,6 +386,11 @@ export default function App() {
     try {
       const commit = await github.commitFile(FILE_PATH, content, msg, BRANCH);
       if (token !== runTokenRef.current) return;
+      setCommitCount((prev) => {
+        const next = prev + 1;
+        localStorage.setItem('commit_count', String(next));
+        return next;
+      });
       appendLog('info', `[${BRANCH} ${commit.short_id}] ${msg}`);
       appendLog('cmd', `$ git push origin ${BRANCH}`);
       appendLog('ok', `remote: commit ${commit.short_id} pushed to GitHub`);
@@ -496,15 +505,14 @@ export default function App() {
                 />
               </div>
               <div className="field-box">
-                <div className="field-box-header">commit message</div>
-                <textarea
+                <div className="field-box-header">commit message&nbsp;·&nbsp;auto-generated</div>
+                <input
+                  type="text"
                   className="field-textarea field-textarea--commit"
-                  rows={1}
-                  placeholder="Describe your change…"
                   value={commitMsg}
-                  onChange={(e) => setCommitMsg(e.target.value)}
-                  onFocus={() => setIsEditorFocused(true)}
-                  onBlur={() => setIsEditorFocused(false)}
+                  readOnly
+                  disabled
+                  style={{ cursor: 'not-allowed', opacity: 0.8 }}
                 />
               </div>
               <button className="push-btn" disabled={pushDisabled} onClick={pushAndRun}>
