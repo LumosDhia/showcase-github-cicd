@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import DevOpsLoop, { StageDef, StageStatus } from './components/DevOpsLoop';
+import AboutMeModal from './components/AboutMeModal';
 import * as github from './api/github';
 import type { GitHubJob, GitHubWorkflowRun } from './api/github';
 
@@ -115,6 +116,7 @@ export default function App() {
 
   const [showDebug, setShowDebug] = useState(false);
   const [showBrowser, setShowBrowser] = useState(false);
+  const [showAboutMe, setShowAboutMe] = useState(false);
   const [iframeKey, setIframeKey] = useState(0);
   const [showNotification, setShowNotification] = useState(false);
 
@@ -451,6 +453,7 @@ export default function App() {
         {['File', 'Edit', 'View'].map((m) => (
           <span key={m} className="menubar-item">{m}</span>
         ))}
+        <span className="menubar-item" onClick={() => setShowAboutMe(true)} style={{ fontWeight: 600, color: '#38bdf8' }}>About Me</span>
         <span className="menubar-item" onClick={() => { setBrowserPos({ x: 0, y: 0 }); setShowBrowser(true); }}>Browser</span>
         <div className="menubar-spacer" />
         <span className="menubar-status">
@@ -471,6 +474,23 @@ export default function App() {
                 <span className="tl" style={{ background: '#febc2e' }} />
                 <span className="tl" style={{ background: '#28c840' }} />
               </div>
+              <button
+                onClick={() => setShowAboutMe(true)}
+                style={{
+                  background: 'rgba(56, 189, 248, 0.15)',
+                  color: '#38bdf8',
+                  border: '1px solid rgba(56, 189, 248, 0.4)',
+                  padding: '2px 8px',
+                  borderRadius: '5px',
+                  fontSize: '0.75rem',
+                  fontFamily: 'inherit',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  marginLeft: '8px'
+                }}
+              >
+                About Me
+              </button>
               <span className="window-titlebar-label">pipeline — github actions loop</span>
             </div>
             <div className="window-body">
@@ -716,6 +736,7 @@ export default function App() {
           <button className="macos-notification-close" onClick={(e) => { e.stopPropagation(); setShowNotification(false); }}>✕</button>
         </div>
       )}
+      {showAboutMe && <AboutMeModal onClose={() => setShowAboutMe(false)} />}
     </div>
   );
 }
