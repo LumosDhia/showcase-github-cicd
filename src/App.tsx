@@ -453,13 +453,14 @@ export default function App() {
         {['File', 'Edit', 'View'].map((m) => (
           <span key={m} className="menubar-item">{m}</span>
         ))}
-        <span className="menubar-item" onClick={() => setShowAboutMe(true)} style={{ fontWeight: 600, color: '#38bdf8' }}>About Me</span>
         <span className="menubar-item" onClick={() => { setBrowserPos({ x: 0, y: 0 }); setShowBrowser(true); }}>Browser</span>
         <div className="menubar-spacer" />
         <span className="menubar-status">
           <span className="tl" style={{ width: 7, height: 7, background: status.dot, animation: status.anim }} />
           {status.text}
         </span>
+        <span className="menubar-divider" />
+        <span className="menubar-action" onClick={() => setShowAboutMe(true)}>About Me</span>
         <span className="menubar-divider" />
         <span className="menubar-action" onClick={() => setShowDebug(true)}>Debug</span>
         <span className="menubar-clock">{clock}</span>
@@ -474,23 +475,6 @@ export default function App() {
                 <span className="tl" style={{ background: '#febc2e' }} />
                 <span className="tl" style={{ background: '#28c840' }} />
               </div>
-              <button
-                onClick={() => setShowAboutMe(true)}
-                style={{
-                  background: 'rgba(56, 189, 248, 0.15)',
-                  color: '#38bdf8',
-                  border: '1px solid rgba(56, 189, 248, 0.4)',
-                  padding: '2px 8px',
-                  borderRadius: '5px',
-                  fontSize: '0.75rem',
-                  fontFamily: 'inherit',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  marginLeft: '8px'
-                }}
-              >
-                About Me
-              </button>
               <span className="window-titlebar-label">pipeline — github actions loop</span>
             </div>
             <div className="window-body">

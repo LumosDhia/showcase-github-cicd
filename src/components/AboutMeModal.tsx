@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface ResumeData {
   user: string;
@@ -23,6 +23,38 @@ export default function AboutMeModal({ onClose }: AboutMeModalProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Movable / Draggable window state
+  const [pos, setPos] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartRef = useRef({ x: 0, y: 0 });
+  const initialPosRef = useRef({ x: 0, y: 0 });
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return;
+    if ((e.target as HTMLElement).tagName === 'BUTTON' || (e.target as HTMLElement).classList.contains('tl')) {
+      return;
+    }
+    setIsDragging(true);
+    dragStartRef.current = { x: e.clientX, y: e.clientY };
+    initialPosRef.current = { x: pos.x, y: pos.y };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging) return;
+    const dx = e.clientX - dragStartRef.current.x;
+    const dy = e.clientY - dragStartRef.current.y;
+    setPos({
+      x: initialPosRef.current.x + dx,
+      y: initialPosRef.current.y + dy,
+    });
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    setIsDragging(false);
+    e.currentTarget.releasePointerCapture(e.pointerId);
+  };
+
   const fetchResume = async () => {
     setLoading(true);
     setError(null);
@@ -40,7 +72,13 @@ export default function AboutMeModal({ onClose }: AboutMeModalProps) {
 
   useEffect(() => {
     fetchResume();
-  }, []);
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   const focusStr = data ? (Array.isArray(data.focus) ? data.focus.join(' | ') : data.focus) : '';
   const stackStr = data ? (Array.isArray(data.stack) ? data.stack.join(' | ') : data.stack) : '';
@@ -53,7 +91,7 @@ export default function AboutMeModal({ onClose }: AboutMeModalProps) {
   return (
     <div className="browser-overlay" onClick={onClose} style={{ zIndex: 9999 }}>
       <div
-        className="window"
+        className="window terminal-window"
         onClick={(e) => e.stopPropagation()}
         style={{
           width: '90%',
@@ -63,35 +101,47 @@ export default function AboutMeModal({ onClose }: AboutMeModalProps) {
           border: '1px solid rgba(255, 255, 255, 0.15)',
           borderRadius: '12px',
           boxShadow: '0 25px 50px -12px rgba(0,0,0,0.7)',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          transform: `translate(${pos.x}px, ${pos.y}px)`,
+          transition: isDragging ? 'none' : 'transform 0.1s ease-out'
         }}
       >
         <div
           className="window-titlebar"
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
           style={{
             background: 'rgba(30, 41, 59, 0.9)',
             padding: '10px 16px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            borderBottom: '1px solid rgba(255,255,255,0.1)'
+            borderBottom: '1px solid rgba(255,255,255,0.1)',
+            cursor: 'move',
+            userSelect: 'none'
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div className="window-titlebar-dots">
-              <span className="tl" style={{ background: '#ff5f57', cursor: 'pointer' }} onClick={onClose} />
+              <span className="tl" style={{ background: '#ff5f57', cursor: 'pointer' }} onClick={onClose} title="Shut terminal" />
               <span className="tl" style={{ background: '#febc2e' }} />
               <span className="tl" style={{ background: '#28c840' }} />
             </div>
+          </div>
+          <span style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 600 }}>
+            dhia@lumosdhia: ~ (zsh) — About Me
+          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <button
               onClick={fetchResume}
               style={{
                 background: 'rgba(56, 189, 248, 0.15)',
                 color: '#38bdf8',
                 border: '1px solid rgba(56, 189, 248, 0.4)',
-                padding: '3px 10px',
-                borderRadius: '6px',
-                fontSize: '0.8rem',
+                padding: '2px 8px',
+                borderRadius: '5px',
+                fontSize: '0.75rem',
                 fontFamily: 'inherit',
                 fontWeight: 600,
                 cursor: 'pointer'
@@ -99,16 +149,14 @@ export default function AboutMeModal({ onClose }: AboutMeModalProps) {
             >
               Re-fetch
             </button>
+            <button
+              onClick={onClose}
+              title="Shut terminal"
+              style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: 16, cursor: 'pointer' }}
+            >
+              ✕
+            </button>
           </div>
-          <span style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 600 }}>
-            dhia@lumosdhia: ~ (zsh)
-          </span>
-          <button
-            onClick={onClose}
-            style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: 16, cursor: 'pointer' }}
-          >
-            ✕
-          </button>
         </div>
 
         <div
