@@ -127,21 +127,6 @@ export default function AboutMeModal({ onClose }: AboutMeModalProps) {
           <span className="window-titlebar-label terminal-titlebar-label">
             dhia@lumosdhia: ~ (zsh) — About Me
           </span>
-          <button
-            onClick={onClose}
-            title="Shut terminal"
-            style={{
-              marginLeft: 'auto',
-              background: 'none',
-              border: 'none',
-              color: 'var(--t-muted)',
-              fontSize: '14px',
-              cursor: 'pointer',
-              zIndex: 2
-            }}
-          >
-            ✕
-          </button>
         </div>
 
         <div
