@@ -453,7 +453,7 @@ export default function App() {
         {['File', 'Edit', 'View'].map((m) => (
           <span key={m} className="menubar-item">{m}</span>
         ))}
-        <span className="menubar-item" onClick={() => { setBrowserPos({ x: 0, y: 0 }); setShowBrowser(true); }}>Browser</span>
+        <span className="menubar-item" onClick={() => { setIframeKey(Date.now()); setBrowserPos({ x: 0, y: 0 }); setShowBrowser(true); }}>Browser</span>
         <div className="menubar-spacer" />
         <span className="menubar-status">
           <span className="tl" style={{ width: 7, height: 7, background: status.dot, animation: status.anim }} />
@@ -607,7 +607,7 @@ export default function App() {
             </div>
 
             <div className="browser-address-bar">
-              <button className="browser-nav-btn" onClick={() => setIframeKey(k => k + 1)} title="Refresh">⟳</button>
+              <button className="browser-nav-btn" onClick={() => setIframeKey(Date.now())} title="Refresh">⟳</button>
 
               <div className="browser-url-input">
                 https://LumosDhia.github.io/simple-node-website/
@@ -627,7 +627,7 @@ export default function App() {
             <div className="browser-body">
               <iframe
                 key={iframeKey}
-                src="https://LumosDhia.github.io/simple-node-website/"
+                src={`https://LumosDhia.github.io/simple-node-website/?v=${iframeKey}`}
                 className="browser-iframe"
                 title="Live Preview"
                 style={{ background: '#fff' }}
