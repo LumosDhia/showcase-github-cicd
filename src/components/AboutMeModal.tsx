@@ -132,7 +132,7 @@ export default function AboutMeModal({ onClose }: AboutMeModalProps) {
         <div
           style={{
             padding: '14px 20px 18px',
-            fontFamily: "ui-monospace, 'SF Mono', Menlo, monospace",
+            fontFamily: "var(--font-mono)",
             fontSize: '12.5px',
             lineHeight: 1.5,
             whiteSpace: 'pre',
