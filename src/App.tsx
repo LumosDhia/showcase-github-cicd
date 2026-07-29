@@ -5,14 +5,14 @@ import * as github from './api/github';
 import type { GitHubJob, GitHubWorkflowRun } from './api/github';
 
 const STAGES: StageDef[] = [
-  { id: 'plan', name: 'Plan' },
-  { id: 'code', name: 'Code' },
-  { id: 'secret-scan', name: 'Secret Scan' },
-  { id: 'sca', name: 'SCA Audit' },
-  { id: 'sast-codeql', name: 'CodeQL SAST' },
-  { id: 'lint-and-test', name: 'Quality Gate' },
-  { id: 'build', name: 'Build' },
-  { id: 'deploy', name: 'Deploy' },
+  { id: 'plan', name: 'Plan', type: 'ci' },
+  { id: 'code', name: 'Code', type: 'ci' },
+  { id: 'secret-scan', name: 'Secret Scan', type: 'ci' },
+  { id: 'sca', name: 'SCA Audit', type: 'ci' },
+  { id: 'sast-codeql', name: 'CodeQL SAST', type: 'ci' },
+  { id: 'lint-and-test', name: 'Quality Gate', type: 'ci' },
+  { id: 'build', name: 'Build', type: 'ci' },
+  { id: 'deploy', name: 'Deploy', type: 'cd' },
 ];
 
 const FILE_PATH = 'public/index.html';
