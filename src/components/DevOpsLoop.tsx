@@ -5,6 +5,7 @@ export type StageStatus = 'idle' | 'active' | 'success' | 'failed' | 'skipped';
 export interface StageDef {
   id: string;
   name: string;
+  type?: 'ci' | 'cd';
 }
 
 interface NodePoint {
@@ -57,7 +58,6 @@ export default function DevOpsLoop({ stages, statuses, progress }: DevOpsLoopPro
   const [nodes, setNodes] = useState<NodePoint[]>([]);
   const [progressPct, setProgressPct] = useState(0);
 
-  // Compute node positions once, from the fixed viewBox-space path.
   useEffect(() => {
     const path = pathRef.current;
     if (!path) return;
@@ -78,7 +78,6 @@ export default function DevOpsLoop({ stages, statuses, progress }: DevOpsLoopPro
     }
   }, [stages.length]);
 
-  // Tween the pulse/overlay toward the target progress whenever it changes.
   useEffect(() => {
     const L = lengthRef.current;
     if (!L) return;
@@ -105,7 +104,6 @@ export default function DevOpsLoop({ stages, statuses, progress }: DevOpsLoopPro
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [progress, nodes.length]);
 
   const failedIndex = stages.findIndex((s) => statuses[s.id] === 'failed');
@@ -113,21 +111,32 @@ export default function DevOpsLoop({ stages, statuses, progress }: DevOpsLoopPro
 
   return (
     <div>
-      <div className="loop-legend">
-        <span className="legend-item"><span className="legend-dot legend-dot--active" />active</span>
-        <span className="legend-item"><span className="legend-dot legend-dot--ok" />passed</span>
-        <span className="legend-item"><span className="legend-dot legend-dot--err" />failed</span>
+      <div className="loop-legend" style={{ justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+          <span style={{ color: 'var(--t-cmd)', fontSize: 12, fontWeight: 600 }}>CI · Integration</span>
+          <span style={{ color: 'var(--t-warn)', fontSize: 12, fontWeight: 600 }}>CD · Deployment</span>
+        </div>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+          <span className="legend-item"><span className="legend-dot legend-dot--active" />active</span>
+          <span className="legend-item"><span className="legend-dot legend-dot--ok" />passed</span>
+          <span className="legend-item"><span className="legend-dot legend-dot--err" />failed</span>
+        </div>
       </div>
+
       <svg viewBox="0 0 1000 400" style={{ width: '100%', height: 'auto', display: 'block', overflow: 'visible' }}>
         <path ref={pathRef} d={LOOP_PATH} fill="none" stroke="var(--track)" strokeWidth={8} strokeLinecap="round" />
         <path ref={overlayRef} d={LOOP_PATH} fill="none" stroke="var(--accent)" strokeWidth={8} strokeLinecap="round" />
         <g>
           {nodes.map((node, i) => {
-            const status = statuses[stages[i].id] ?? 'idle';
+            const stage = stages[i];
+            const type = stage.type || (stage.id === 'deploy' ? 'cd' : 'ci');
+            const status = statuses[stage.id] ?? 'idle';
             const strong = status === 'active' || status === 'success' || status === 'failed';
             const cs = circleStyle(status);
+            const nativeColor = type === 'cd' ? 'var(--t-warn)' : 'var(--t-cmd)';
+
             return (
-              <g key={stages[i].id}>
+              <g key={stage.id}>
                 {status === 'active' && (
                   <circle cx={node.x} cy={node.y} r={16} fill="none" stroke="var(--accent)" strokeWidth={2} className="ring-pulse" />
                 )}
@@ -140,14 +149,14 @@ export default function DevOpsLoop({ stages, statuses, progress }: DevOpsLoopPro
                   y={node.ly}
                   textAnchor="middle"
                   style={{
-                    fill: strong ? 'var(--ink)' : 'var(--muted)',
+                    fill: strong ? 'var(--ink)' : nativeColor,
                     fontFamily: "-apple-system,'SF Pro Text',sans-serif",
                     fontSize: 12.5,
                     fontWeight: strong ? 600 : 500,
                     letterSpacing: '0.01em',
                   }}
                 >
-                  {stages[i].name}
+                  {stage.name}
                 </text>
               </g>
             );
@@ -164,6 +173,7 @@ export default function DevOpsLoop({ stages, statuses, progress }: DevOpsLoopPro
           <circle r={6} fill="var(--accent)" stroke="var(--win)" strokeWidth={2} />
         </g>
       </svg>
+
       <div style={{ display: 'flex', justifyContent: 'center', padding: '2px 0 12px' }}>
         <span style={{ fontFamily: "ui-monospace,'SF Mono',Menlo,monospace", fontSize: 11, color: 'var(--muted)' }}>
           progress&nbsp;·&nbsp;<span style={{ color: 'var(--ink)', fontWeight: 600 }}>{progressPct}%</span>
