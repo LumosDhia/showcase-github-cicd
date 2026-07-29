@@ -96,6 +96,8 @@ export default function AboutMeModal({ onClose }: AboutMeModalProps) {
         style={{
           width: '90%',
           maxWidth: '700px',
+          height: 'auto',
+          maxHeight: '85vh',
           background: 'var(--t-bg)',
           backdropFilter: 'blur(28px) saturate(190%)',
           WebkitBackdropFilter: 'blur(28px) saturate(190%)',
@@ -144,16 +146,17 @@ export default function AboutMeModal({ onClose }: AboutMeModalProps) {
 
         <div
           style={{
-            padding: '18px 22px',
+            padding: '14px 20px 18px',
             fontFamily: "ui-monospace, 'SF Mono', Menlo, monospace",
             fontSize: '12.5px',
-            lineHeight: 1.55,
+            lineHeight: 1.5,
             whiteSpace: 'pre',
             overflowX: 'auto',
+            overflowY: 'auto',
             color: 'var(--t-fg)'
           }}
         >
-          <div style={{ color: 'var(--t-muted)', marginBottom: 14 }}>
+          <div style={{ color: 'var(--t-muted)', marginBottom: 12 }}>
             {"┌──("}<span style={{ color: 'var(--t-cmd)', fontWeight: 600 }}>dhia dynamic-node</span>{")-[~]\n"}
             {"└─$ "}<span style={{ color: 'var(--t-fg)', fontWeight: 600 }}>fastfetch --profile resume</span>
           </div>
@@ -186,7 +189,7 @@ export default function AboutMeModal({ onClose }: AboutMeModalProps) {
               {'                                   '}<span style={{ color: '#ffffff', fontWeight: 700 }}>LINKS</span>{"\n"}
               {'                                   ├── web:   '}<a href={webUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--accent)', textDecoration: 'underline', fontWeight: 600 }}>{data.links.web}</a>{"\n"}
               {'                                   ├── git:   '}<a href={gitUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--accent)', textDecoration: 'underline', fontWeight: 600 }}>{data.links.git}</a>{"\n"}
-              {'                                   └── mail:  '}<a href={mailUrl} style={{ color: 'var(--accent)', textDecoration: 'underline', fontWeight: 600 }}>{data.links.mail}</a>{"\n"}
+              {'                                   └── mail:  '}<a href={mailUrl} style={{ color: 'var(--accent)', textDecoration: 'underline', fontWeight: 600 }}>{data.links.mail}</a>
             </div>
           )}
         </div>
