@@ -177,7 +177,6 @@ export default function DevOpsLoop({ stages, statuses, progress }: DevOpsLoopPro
             const labelColor = STAGE_TYPE_COLOR[type];
             const strong = status === 'active' || status === 'success' || status === 'failed';
             const cs = circleStyle(status, type);
-            const nativeColor = type === 'cd' ? 'var(--t-warn)' : 'var(--t-cmd)';
 
             return (
               <g key={stage.id}>
