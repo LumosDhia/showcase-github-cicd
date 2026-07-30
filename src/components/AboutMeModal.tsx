@@ -157,7 +157,7 @@ export default function AboutMeModal({ onClose }: AboutMeModalProps) {
               <span style={{ color: 'var(--t-cmd)' }}>{"           \\ \\              \\ \\"}</span>    <span style={{ color: '#ffffff', fontWeight: 700 }}>Uni:</span>      {data.uni}{"\n"}
               <span style={{ color: 'var(--t-cmd)' }}>{"            \\ \\ ____________\\ \\"}</span>    <span style={{ color: '#ffffff', fontWeight: 700 }}>Focus:</span>    <span style={{ color: 'var(--t-cmd)', fontWeight: 600 }}>{focusStr}</span>{"\n"}
               <span style={{ color: 'var(--t-cmd)' }}>{"             \\.'====. = .===='.\\"}</span>   <span style={{ color: '#ffffff', fontWeight: 700 }}>STACK:</span>    <span style={{ color: 'var(--t-warn)', fontWeight: 600 }}>{stackStr}</span>{"\n"}
-              <span style={{ color: 'var(--t-cmd)' }}>{"             ((      ) (      ))"}</span>   <span style={{ color: '#ffffff', fontWeight: 700 }}>CERTS:</span>    <span style={{ color: '#c084fc', fontWeight: 600 }}>{certsStr}</span>{"\n"}
+              <span style={{ color: 'var(--t-cmd)' }}>{"             ((      ) (      ))"}</span>   <span style={{ color: '#ffffff', fontWeight: 700 }}>CERTS:</span>    <span style={{ color: 'var(--t-warn)', fontWeight: 600 }}>{certsStr}</span>{"\n"}
               <span style={{ color: 'var(--t-cmd)' }}>{"              \\\\____// \\\\____//"}</span>    {"\n"}
               <span style={{ color: 'var(--t-cmd)' }}>{"               '----'   '----'"}</span>     <span style={{ color: '#ffffff', fontWeight: 700 }}>WORK</span>{"\n"}
               {data.work.map((w, idx) => {
