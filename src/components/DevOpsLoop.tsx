@@ -26,33 +26,22 @@ const LOOP_PATH =
   'M500 200 C 430 96 150 96 150 200 C 150 304 430 304 500 200 C 570 96 850 96 850 200 C 850 304 570 304 500 200 Z';
 
 const GLYPH: Record<StageStatus, string> = { idle: '', active: '', success: '✓', failed: '✕', skipped: '–' };
-
 const GLYPH_COLOR: Record<StageStatus, string> = {
-  idle: 'var(--muted)',
-  active: 'var(--accent)',
-  success: 'var(--ok)',
-  failed: 'var(--err)',
-  skipped: 'var(--faint)',
+  idle: 'var(--muted)', active: 'var(--accent)', success: 'var(--ok)', failed: 'var(--err)', skipped: 'var(--muted)',
 };
 
-const STAGE_TYPE_COLOR = {
-  ci: 'var(--accent)',
-  cd: 'var(--warn)',
-};
-
-function circleStyle(status: StageStatus, type: 'ci' | 'cd') {
-  const accentColor = STAGE_TYPE_COLOR[type];
+function circleStyle(status: StageStatus) {
   switch (status) {
     case 'active':
-      return { stroke: accentColor, fill: 'var(--win)', strokeWidth: 3 };
+      return { stroke: 'var(--accent)', fill: 'color-mix(in oklab,var(--accent) 16%, var(--win))', strokeWidth: 3 };
     case 'success':
-      return { stroke: 'var(--ok)', fill: 'var(--win)', strokeWidth: 2.5 };
+      return { stroke: 'var(--ok)', fill: 'color-mix(in oklab,var(--ok) 18%, var(--win))', strokeWidth: 3 };
     case 'failed':
-      return { stroke: 'var(--err)', fill: 'var(--win)', strokeWidth: 2.5 };
+      return { stroke: 'var(--err)', fill: 'color-mix(in oklab,var(--err) 20%, var(--win))', strokeWidth: 3 };
     case 'skipped':
-      return { stroke: 'var(--muted)', fill: 'var(--win)', strokeWidth: 2, strokeDasharray: '3 4' };
+      return { stroke: 'var(--faint)', fill: 'var(--win)', strokeWidth: 2, strokeDasharray: '3 4' };
     default:
-      return { stroke: accentColor, fill: 'var(--win)', strokeWidth: 2 };
+      return { stroke: 'var(--faint)', fill: 'var(--win)', strokeWidth: 2.5 };
   }
 }
 
@@ -69,6 +58,7 @@ export default function DevOpsLoop({ stages, statuses, progress }: DevOpsLoopPro
   const [nodes, setNodes] = useState<NodePoint[]>([]);
   const [progressPct, setProgressPct] = useState(0);
 
+  // Compute node positions once, from the fixed viewBox-space path.
   useEffect(() => {
     const path = pathRef.current;
     if (!path) return;
@@ -80,12 +70,7 @@ export default function DevOpsLoop({ stages, statuses, progress }: DevOpsLoopPro
       const len = ((k + 0.5) / count) * L;
       const pt = path.getPointAtLength(len);
       const above = pt.y < 200;
-      pts.push({
-        x: pt.x,
-        y: pt.y,
-        lx: pt.x,
-        ly: above ? pt.y - 32 : pt.y + 40,
-      });
+      pts.push({ x: pt.x, y: pt.y, lx: pt.x, ly: above ? pt.y - 28 : pt.y + 36 });
     }
     setNodes(pts);
     if (overlayRef.current) {
@@ -94,6 +79,7 @@ export default function DevOpsLoop({ stages, statuses, progress }: DevOpsLoopPro
     }
   }, [stages.length]);
 
+  // Tween the pulse/overlay toward the target progress whenever it changes.
   useEffect(() => {
     const L = lengthRef.current;
     if (!L) return;
@@ -120,127 +106,68 @@ export default function DevOpsLoop({ stages, statuses, progress }: DevOpsLoopPro
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [progress, nodes.length]);
 
   const failedIndex = stages.findIndex((s) => statuses[s.id] === 'failed');
   const breakNode = failedIndex >= 0 ? nodes[failedIndex] : null;
 
   return (
-    <div style={{ padding: '4px 0 10px' }}>
-      {/* Category Legend */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '0 8px 12px',
-          fontSize: 12,
-          fontWeight: 600,
-          fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-        }}
-      >
-        <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--accent)' }}>
-            <span style={{ width: 9, height: 9, borderRadius: '50%', background: 'var(--accent)' }} />
-            CI (Continuous Integration)
-          </span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--warn)' }}>
-            <span style={{ width: 9, height: 9, borderRadius: '50%', background: 'var(--warn)' }} />
-            CD (Continuous Deployment)
-          </span>
-        </div>
-
-        <div className="loop-legend" style={{ margin: 0 }}>
-          <span className="legend-item"><span className="legend-dot legend-dot--active" />active</span>
-          <span className="legend-item"><span className="legend-dot legend-dot--ok" />passed</span>
-          <span className="legend-item"><span className="legend-dot legend-dot--err" />failed</span>
-        </div>
+    <div>
+      <div className="loop-legend">
+        <span className="legend-item"><span className="legend-dot legend-dot--active" />active</span>
+        <span className="legend-item"><span className="legend-dot legend-dot--ok" />passed</span>
+        <span className="legend-item"><span className="legend-dot legend-dot--err" />failed</span>
       </div>
-
       <svg viewBox="0 0 1000 400" style={{ width: '100%', height: 'auto', display: 'block', overflow: 'visible' }}>
-        <path ref={pathRef} d={LOOP_PATH} fill="none" stroke="var(--track)" strokeWidth={6} strokeLinecap="round" opacity={0.6} />
-        <path ref={overlayRef} d={LOOP_PATH} fill="none" stroke="var(--accent)" strokeWidth={6} strokeLinecap="round" />
-
+        <path ref={pathRef} d={LOOP_PATH} fill="none" stroke="var(--track)" strokeWidth={8} strokeLinecap="round" />
+        <path ref={overlayRef} d={LOOP_PATH} fill="none" stroke="var(--accent)" strokeWidth={8} strokeLinecap="round" />
         <g>
           {nodes.map((node, i) => {
-            const stage = stages[i];
-            const type = stage.type || (stage.id === 'deploy' ? 'cd' : 'ci');
-            const status = statuses[stage.id] ?? 'idle';
-            const labelColor = STAGE_TYPE_COLOR[type];
+            const status = statuses[stages[i].id] ?? 'idle';
             const strong = status === 'active' || status === 'success' || status === 'failed';
-            const cs = circleStyle(status, type);
-
+            const cs = circleStyle(status);
             return (
-              <g key={stage.id}>
-                <circle cx={node.x} cy={node.y} r={15} style={cs} />
-
-                {/* Status Glyph or Inner Dot */}
-                {status === 'idle' || status === 'active' ? (
-                  <circle cx={node.x} cy={node.y} r={4} fill={labelColor} />
-                ) : (
-                  <text
-                    x={node.x}
-                    y={node.y + 4}
-                    textAnchor="middle"
-                    style={{
-                      fill: GLYPH_COLOR[status],
-                      fontFamily: "ui-monospace, 'SF Mono', Menlo, monospace",
-                      fontSize: 13,
-                      fontWeight: 800,
-                    }}
-                  >
-                    {GLYPH[status]}
-                  </text>
+              <g key={stages[i].id}>
+                {status === 'active' && (
+                  <circle cx={node.x} cy={node.y} r={16} fill="none" stroke="var(--accent)" strokeWidth={2} className="ring-pulse" />
                 )}
-
-                {/* Stage Label Box & Text */}
-                <g transform={`translate(${node.lx}, ${node.ly})`}>
-                  <rect
-                    x={-((stage.name.length * 7.5 + 24) / 2)}
-                    y={-12}
-                    width={stage.name.length * 7.5 + 24}
-                    height={22}
-                    rx={11}
-                    fill="var(--win)"
-                    stroke={labelColor}
-                    strokeWidth={1}
-                    style={{ backdropFilter: 'blur(4px)' }}
-                  />
-                  <text
-                    x={0}
-                    y={3}
-                    textAnchor="middle"
-                    style={{
-                      fill: strong ? 'var(--ink)' : labelColor,
-                      fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif",
-                      fontSize: 12,
-                      fontWeight: 700,
-                      letterSpacing: '0.02em',
-                    }}
-                  >
-                    {stage.name}
-                  </text>
-                </g>
+                <circle cx={node.x} cy={node.y} r={15} style={cs} />
+                <text x={node.x} y={node.y + 4} textAnchor="middle" style={{ fill: GLYPH_COLOR[status], fontFamily: "ui-monospace,'SF Mono',Menlo,monospace", fontSize: 13, fontWeight: 700 }}>
+                  {GLYPH[status]}
+                </text>
+                <text
+                  x={node.lx}
+                  y={node.ly}
+                  textAnchor="middle"
+                  style={{
+                    fill: strong ? 'var(--ink)' : 'var(--muted)',
+                    fontFamily: "-apple-system,'SF Pro Text',sans-serif",
+                    fontSize: 12.5,
+                    fontWeight: strong ? 600 : 500,
+                    letterSpacing: '0.01em',
+                  }}
+                >
+                  {stages[i].name}
+                </text>
               </g>
             );
           })}
         </g>
-
         {breakNode && (
           <g>
-            <line x1={breakNode.x - 9} y1={breakNode.y - 9} x2={breakNode.x + 9} y2={breakNode.y + 9} stroke="var(--err)" strokeWidth={4} strokeLinecap="round" />
-            <line x1={breakNode.x + 9} y1={breakNode.y - 9} x2={breakNode.x - 9} y2={breakNode.y + 9} stroke="var(--err)" strokeWidth={4} strokeLinecap="round" />
+            <line x1={breakNode.x - 9} y1={breakNode.y - 9} x2={breakNode.x + 9} y2={breakNode.y + 9} stroke="var(--err)" strokeWidth={5} strokeLinecap="round" />
+            <line x1={breakNode.x + 9} y1={breakNode.y - 9} x2={breakNode.x - 9} y2={breakNode.y + 9} stroke="var(--err)" strokeWidth={5} strokeLinecap="round" />
           </g>
         )}
-
         <g ref={pulseRef} style={{ opacity: 0 }}>
-          <circle r={5} fill="var(--accent)" stroke="var(--ink)" strokeWidth={1.5} />
+          <circle r={15} fill="var(--accent)" opacity={0.16} />
+          <circle r={6} fill="var(--accent)" stroke="var(--win)" strokeWidth={2} />
         </g>
       </svg>
-
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '6px 0 2px' }}>
-        <span style={{ fontFamily: "ui-monospace, 'SF Mono', Menlo, monospace", fontSize: 11.5, color: 'var(--muted)' }}>
-          progress&nbsp;·&nbsp;<span style={{ color: 'var(--accent)', fontWeight: 700 }}>{progressPct}%</span>
+      <div style={{ display: 'flex', justifyContent: 'center', padding: '2px 0 12px' }}>
+        <span style={{ fontFamily: "ui-monospace,'SF Mono',Menlo,monospace", fontSize: 11, color: 'var(--muted)' }}>
+          progress&nbsp;·&nbsp;<span style={{ color: 'var(--ink)', fontWeight: 600 }}>{progressPct}%</span>
         </span>
       </div>
     </div>

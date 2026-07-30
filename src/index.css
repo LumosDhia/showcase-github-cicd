@@ -67,7 +67,9 @@ a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 ::selection { background: color-mix(in oklab, var(--accent) 35%, transparent); }
 
+@keyframes ringPulse { 0% { r: 16px; opacity: .55; } 100% { r: 36px; opacity: 0; } }
 @keyframes blink { 50% { opacity: 0; } }
+.ring-pulse { animation: ringPulse 1.5s ease-out infinite; }
 .blink-cursor { animation: blink 1s steps(1) infinite; }
 
 .app-root {
