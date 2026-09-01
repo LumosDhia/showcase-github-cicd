@@ -1,5 +1,7 @@
 # Showcase GitHub CI/CD
 
+Live: https://showcase-github-cicd.pages.dev/
+
 ## Objective
 
 - Visualize a full CI/CD pipeline — security scans, build, and deploy — as a single animated infinity loop
