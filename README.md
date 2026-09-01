@@ -12,3 +12,5 @@
 Showcase GitHub CI/CD is a React/Vite dashboard that turns a GitHub Actions delivery pipeline into an interactive "DevOps Infinity Loop": editing and committing a file kicks off a real pipeline run (CodeQL SAST, Gitleaks secret scanning, npm audit, a lint/test quality gate, build, and deploy to GitHub Pages), with each stage's status animated on the loop and streamed live in a console panel as it happens.
 
 ![Showcase GitHub CI/CD pipeline dashboard](assets/preview.jpg)
+
+![Live preview of the deployed site after a pipeline run](assets/live-preview.png)
